@@ -1,4 +1,4 @@
-﻿# Work in progress...
+# Work in progress...
 
 **This document is currently being created and so is not yet suitable for reference.**
 
@@ -8,7 +8,7 @@
 
 * Created on a Pyboard (PYB) v1.1 (with STM32F405RGT6 microcontroller) but should be readily adaptable to other STM32 Micropython builds.
 
-### Photos for `iol.py` module
+### Photos to support `iol.py` module
 
 ![Chrome OS Serial Terminal settings for Pyboard](/photos/Chrome%20OS%20Serial%20Terminal%20settings%20for%20Pyboard.png?raw=true "Chrome OS Serial Terminal settings for Pyboard")
 
@@ -16,12 +16,13 @@
 
 ### References
 
-* ~~[Udemy course: *"Embedded Systems Bare-Metal Programming Ground Up™ (STM32)"*](https://www.udemy.com/course/embedded-systems-bare-metal-programming/)~~
 * [STM32F405 Data Sheet](https://www.st.com/resource/en/datasheet/dm00037051.pdf)
 * [STM32F405 Reference Manual](https://www.st.com/resource/en/reference_manual/dm00031020-stm32f405-415-stm32f407-417-stm32f427-437-and-stm32f429-439-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf)
 * [STM32 Cortex®-M4 Programming Manual](https://www.st.com/resource/en/programming_manual/dm00046982-stm32-cortexm4-mcus-and-mpus-programming-manual-stmicroelectronics.pdf)
 * [MicroPython documentation](https://docs.micropython.org/en/latest/)
-* [Quick Reference for Pyboard v1.1](https://docs.micropython.org/en/latest/pyboard/quickref.html)
+* [Pyboard v1.1 documentation](https://docs.micropython.org/en/latest/pyboard/quickref.html)
 * [Serial Term for Chrome OS (by Ganehag)](https://chrome.google.com/webstore/detail/serial-term/fnjkimblohniildfepjhejeppenokhie)
-* [My `iol.py` module](/iol.py)
 
+### Low-level I/O code
+
+* [My `iol.py` module](/iol.py)
