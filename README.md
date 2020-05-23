@@ -25,4 +25,4 @@
 
 ### Low-level I/O code
 
-* [My `iol.py` module](/iol.py)
+* [`iol.py`](/iol.py)
