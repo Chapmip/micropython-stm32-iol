@@ -1,8 +1,8 @@
-﻿# Work in progress...
+# The `iol.py` module
 
-**This document is currently being created and so is not yet suitable for reference.**
+**Note: This document is currently being created and so is not yet suitable for reference.**
 
-### Quick summary of `iol.py` module
+### Quick summary
 
 * Low-level I/O classes to facilitate "bare-metal" access in Micropython to STM32 memory locations and device registers (for learning purposes)
 
@@ -14,13 +14,13 @@ I created the `iol.py` module when I wanted to experiment with "bare metal" acce
 
 I wasn't sure whether the Micropython system footprint would get in the way of "bare metal" accesses to device registers, but I didn't find this generally to be the case.  In most cases, I have been able to work around issues of contention by reading carefully the Micropython documentation and avoiding a few on-chip peripheral functions that are dedicated to Micropython.
 
-Inevitably, code written in Micropython will run considerably slower than C code.  I only found this to be a problem, though, during one experiment with the SPI bus, in which Micropython code is unable to keep up with the high speed of the bus (can be up to 21 MHz!).  Even in this case, I was able to work around this limitation by re-writing the critical section of code using inline assembler code.
+Inevitably, code written in Micropython will run considerably slower than C code.  I only found this to be a problem, though, during one experiment with the SPI bus, in which Micropython code is unable to keep up with the high speed of the bus (up to 21 MHz).  Even in this case, I was able to work around this limitation by re-writing the critical section of code using inline assembler code.
 
 My code examples inspired by the Udemy course can be found in my separate repository [here](https://github.com/Chapmip/micropython-stm32-examples).
 
 ### Getting started
 
-When plugged into the USB port of a computer (using a Micro USB B to USB A lead), the Pyboard is configured to appear as  both:
+When plugged into the USB port of a computer (using a Micro-USB B to USB A lead), the Pyboard is configured to appear as  both:
 
 * An **MSC (Mass Storage Class) device** ⁠— for mounting into the filesystem of the computer as a dedicated drive showing the files in the flash memory of the Pyboard (either its inbuilt flash or an installed MicroSD card)
 
@@ -41,6 +41,10 @@ To add the `iol.py` module to the Pyboard, copy it from the computer into the to
 
 In general, the reset button should be used as a last resort for a "cold start" of the Pyboard ⁠— for example, if the REPL environment has crashed.  In most other cases, it is adequate to perform a "warm start" by issuing a `<CONTROL-D>` on a blank line of the REPL prompt.
 
+### Low-level I/O code
+
+* [`iol.py`](/iol.py)
+
 ### References
 
 * [STM32F405 Data Sheet](https://www.st.com/resource/en/datasheet/dm00037051.pdf)
@@ -50,7 +54,3 @@ In general, the reset button should be used as a last resort for a "cold start" 
 * [Pyboard v1.1 documentation](https://docs.micropython.org/en/latest/pyboard/quickref.html)
 * [Serial Term for Chrome OS (by Ganehag)](https://chrome.google.com/webstore/detail/serial-term/fnjkimblohniildfepjhejeppenokhie)
 * [Separate repository for code examples using `iol.py`](https://github.com/Chapmip/micropython-stm32-examples)
-
-### Low-level I/O code
-
-* [`iol.py`](/iol.py)
