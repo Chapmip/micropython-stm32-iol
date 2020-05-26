@@ -1,4 +1,4 @@
-﻿# The `iol.py` module
+# The `iol.py` module
 
 **This is the user manual for the `iol.py` module.  It is currently a working draft that is still under review.**
 
@@ -287,7 +287,7 @@ Examples:
 
 # Gotchas!
 
-I'm documenting here any hazards that I encounter whilst using the `iol.py` module.
+I'm documenting here any hazards that I've encountered whilst using the `iol.py` module.
 
 ## 1. Remember to use `[:]` or `read/write` methods!
 
