@@ -1,6 +1,6 @@
 ﻿# The `iol.py` module
 
-**Note: This document is currently being created and so is not yet suitable for reference.**
+**Note: This document is currently at its first draft and under review.**
 
 ## Quick summary
 
@@ -138,7 +138,7 @@ It may also be possible to use the alternative terser syntax `reg_obj[:] = value
 
 * If `bit_high` < `bit_low`, then these values will be swapped so that the least significant bit of `bit_field_value` is always written to the least significant bit of the bit field in the STM32 register.
 
-* `bit_field_value` must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bit_high` and `bit_low` (e.g. 0 to 7 for a 3-bit field)..
+* `bit_field_value` must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bit_high` and `bit_low` (e.g. 0 to 7 for a 3-bit field).
 
 *See above note regarding the non-standard adoption of the Python "slicing" notation.*
 
@@ -183,14 +183,74 @@ The output of `dump()` is an iteration of the `print()` output for each of the d
 * `new_type` is a string specifying the size of the memory location to be applied to the new `iol.Mem` object and its offset from the memory location stored in `reg_obj`.   The string is a concatenation of the required size ("32", "16" or "8") with an offset specifier (none for 32 bits, "L" or "H" for 16 bits, "Ll", "Lh", "Hl" and "Hh" for 8 bits ⁠— note the lower-case "L"s!).  The endian-ness of the system (big- or little-endian) is taken into account to ensure that the correct offset is applied for 16 and 8 bit addressing. 
 
 ---
+---
 
-### More to be added here on RegArr..
+### Class `iol.RegArr` ⁠— low-level I/O access to one or more STM32 peripheral registers containing a uniform array of bit fields:
 
+The `iol.RegArr` class enables a set of STM32 peripheral registers (one or more) containing a uniform array of bit fields to be manipulated as a single array from Micropython.
+
+#### Constructor for `iol.RegArr`
+
+Create a new `iol.RegArr` object corresponding to a set of STM32 registers (one or more) and assign it to `reg_arr_obj`:
+
+    reg_arr_obj = iol.RegArr(labels, fields_per_reg, bits_per_field)
+
+* `labels` is a string of the form `"<base>.<register1>,<register2>...,<registerN>"`, where `<base>` is the name of an STM32 peripheral block (e.g. "GPIOA") and each `<registerX>` is the name of an individual register within that block (e.g. "ODR").  Either a single `<register1>` or multiple `<registerX>` may be specified ⁠— in the latter case the register with the least significant bit field (for addressing the array as a whole) must be specified first, with the other registers following in increasing order of significance in the array.
+
+* `fields_per_reg` is a positive integer value that specifies the number of uniformly sized bit fields contained in each register.
+
+* `bits_per_field` is a positive integer value that specifies the size of each bit field within each register.
+
+* By definition for a 32 bit register, `fields_per_reg` * `bits_per_field` must be less than or equal to 32.
+
+Examples:
+
+    pa_moder = iol.RegArr("GPIOA.MODER", 16, 2)
+    pa_afr = iol.RegArr("GPIOA.AFR0,AFR1", 8, 4)
+    adc1_smpr = iol.RegArr("ADC1.SMPR2,SMPR1", 10, 3)
+
+#### Methods for `iol.RegArr`
+
+**- Read a bit field in the array of STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:**
+ 
+    field_value = reg_arr_obj[index]
+
+* `index` is the positive integer (or zero) index of the bit field to be read from the array of STM32 registers (starting from zero).  It must be within the range of zero to the total number  **minus one** of fields in the array (i.e. `fields_per_reg` * number of registers)  defined for the `iol.RegArr` object when it was constructed.
+
+* The return value (`field_value`) will be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bits_per_field` when the `iol.RegArr` object was constructed (i.e. 0-7 for a 3 bit field).
+
+---
+
+**- Write to a bit field in the array of STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:**
+ 
+    reg_arr_obj[index] = field_value
+
+* `index` is the positive integer (or zero) index of the bit field to be read from the array of STM32 registers (starting from zero).  It must be within the range of zero to the total number  **minus one** of fields in the array (i.e. `fields_per_reg` * number of registers)  defined for the `iol.RegArr` object when it was constructed.
+
+* `field_value` must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bits_per_field` when the `iol.RegArr` object was constructed (i.e. 0-7 for a 3 bit field).
+
+---
+
+**- Print in a human-friendly format the array of values held in the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:**
+ 
+    reg_arr_obj.print()
+    
+*This method is useful for debugging problems with "bare-metal" code in which it is necessary to locate the correct bit field within an array of STM32 peripheral registers and identify its value at a hexadecimal level or an individual bit level.*
+
+---
+
+**- Dump in a human-friendly format the contents of all of the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:**
+ 
+    reg_arr_obj.dump()
+    
+The output of `dump()` is an iteration of the `print()` output for each of the `iol.Reg` registers specified when constructing the `iol.RegArr` object.
+
+---
 ---
 
 ### Class `iol.Mem` ⁠— low-level I/O access to a single STM32 memory location:
 
-The `iol.Mem` class is the base class for `iol.Reg` that enables any single STM32 memory location (not necessarily a peripheral register) to be manipulated in a more fluent way from Micropython.
+The `iol.Mem` class is the base class for `iol.Reg` that enables any single STM32 memory location (not necessarily a peripheral register) to be manipulated in a more fluent way from Micropython.  `iol.Mem` provides most of the methods to the derived `iol.Reg` class.
 
 #### Constructor for `iol.Mem`
 
@@ -211,6 +271,33 @@ Examples:
 
 `iol.Mem` provides all of the methods **except** for `dump()`to the `iol.Reg` class.  Refer therefore to the above documentation on `iol.Reg` for details of the applicable methods. 
 
+## Gotchas!
+
+### Remember to use `[:]` or `read/write` methods!
+
+The following code will not work as expected:
+
+    pa_odr = iol.Reg("GPIOA.ODR")
+    pa_odr = 0x55
+
+It will not change the value of the GPIOA ODR register.  Instead, it will change `pa_odr` from a reference to the `iol.Reg` object to an integer with a value of 0x55.
+
+Instead, use one of the following:
+
+    pa_odr[:] = 0x55
+    pa_odr.write(0x55)
+
+Similarly, the following code will not work as expected:
+
+    pa_idr = iol.Reg("GPIOA.IDR")
+    value = pa_odr
+    
+It will not read the state of GPIOA IDR register.  Instead, it will set up `value` as another reference to the `iol.Reg` object associated with pa_idr.
+
+Instead, use one of the following:
+
+    value = pa_idr[:]
+    value = pa_idr.read()
 
 ## References
 
