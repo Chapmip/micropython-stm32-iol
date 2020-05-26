@@ -9,8 +9,14 @@
 * Created on a Pyboard (PYB) v1.1 (with STM32F405RGT6 microcontroller) but should be readily adaptable to other STM32 Micropython builds
 
 # Quick links
-
-** to be added **
+* [History](https://github.com/Chapmip/micropython-stm32-iol#history)
+* [Getting started](https://github.com/Chapmip/micropython-stm32-iol#getting-started)
+* [Source code](https://github.com/Chapmip/micropython-stm32-iol#source-code)
+* [Class  `iol.Reg`](https://github.com/Chapmip/micropython-stm32-iol#class-iolreg--low-level-io-access-to-a-single-stm32-peripheral-register)
+* [Class `iol.RegArr`](https://github.com/Chapmip/micropython-stm32-iol#class-iolregarr--low-level-io-access-to-one-or-more-stm32-peripheral-registers-containing-uniform-array-of-bit-fields)
+* [Class `iol.Mem`](https://github.com/Chapmip/micropython-stm32-iol#class-iolmem--low-level-io-access-to-a-single-stm32-memory-location)
+* [Gotchas!](https://github.com/Chapmip/micropython-stm32-iol#gotchas)
+* [References](https://github.com/Chapmip/micropython-stm32-iol#references)
 
 # History
 
@@ -20,7 +26,7 @@ I wasn't sure whether the Micropython system footprint would get in the way of "
 
 Inevitably, code written in Micropython will run considerably slower than C code.  I only found this to be a problem, though, during one experiment with the SPI bus, in which Micropython code is unable to keep up with the high speed of the bus (up to 21 MHz).  Even in this case, I was able to work around this limitation by re-writing the critical section of code using inline assembler code.
 
-My code examples inspired by the Udemy course can be found in my separate repository [here](https://github.com/Chapmip/micropython-stm32-examples).
+My code examples inspired by the Udemy course (but using the `iol.py` module and Micropython) can be found in my separate repository [here](https://github.com/Chapmip/micropython-stm32-examples).
 
 # Getting started
 
@@ -61,7 +67,7 @@ Create a new `iol.Reg` object corresponding to an STM32 register and assign it t
 
 * `label` is a string of the form `"<base>.<register>"`, where `<base>` is the name of an STM32 peripheral block (e.g. "GPIOA") and `<register>` is the name of an individual register within that block (e.g. "ODR").
 
-* `size` is an optional integer value that specifies the size of the register (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Use this feature with caution, as some STM32 registers can only be accessed in larger sizes (check the STM32 data sheet and reference manuals for specifics — see references later).
+* `size` is an optional integer value that specifies the size of the register (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Use this feature with caution, as some STM32 registers can only be accessed in larger sizes (check the STM32 data sheet and reference manuals for specifics — see [References](https://github.com/Chapmip/micropython-stm32-iol#references)).
 
 Examples:
 
@@ -72,7 +78,7 @@ Notes:
 
 The STM32 `<base>` and `<register>` values are derived from the Micropython `stm` module, which is included in compatible builds.  A completes list of these values can be obtained by invoking the module-level method `iol.list_names()`.
 
-The `iol.py` module also handles a few special cases in which the `stm` manual falls short (for example, the common registers for ADC1,2,3 which are not defined in the `stm` module but can be accessed using the `label` strings "ADC.CSR", "ADC.CCR" and "ADC.CDR").
+The `iol.py` module also handles a few special cases in which the `stm` manual falls short (for example, the common registers for ADC1,2,3 which are not defined in the `stm` module but can be accessed using the special `label` strings "ADC.CSR", "ADC.CCR" and "ADC.CDR").
 
 ## Methods for `iol.Reg`
 
@@ -82,7 +88,7 @@ Read the current value held in the STM32 register associated with the `iol.Reg` 
  
     reg_value = reg_obj.read(*, size=None)
     
-* `size` is an optional integer value (not valid as a positional parameter ⁠— must be assigned explictly by name) that specifies the bit width of the read operation (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Refer to the warning in the constructor section about overriding the default read size.
+* `size` is an optional integer value (not valid as a positional parameter ⁠— must be assigned explictly by name) that specifies the bit width of the read operation (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Refer to the warning in the [constructor section](https://github.com/Chapmip/micropython-stm32-iol#constructor-for-iolreg) about overriding the default read size.
 
 * The return value (`reg_value`) will be a positive integer (or zero) corresponding to the size being read.
 
@@ -96,7 +102,7 @@ Write a value to the STM32 register associated with the `iol.Reg` object assigne
 
 * `value` is the positive integer (or zero) value to be written into the STM32 register.  It must be within the range of the bit width defined by the explicit `size` parameter (see below) if included, and the bit width defined for the `iol.Reg` object when it was constructed.
     
-* `size` is an optional integer value (not valid as a positional parameter ⁠— must be assigned explictly by name) that specifies the bit width of the read operation (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Refer to the warning in the constructor section about overriding the default read size.
+* `size` is an optional integer value (not valid as a positional parameter ⁠— must be assigned explictly by name) that specifies the bit width of the read operation (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Refer to the warning in the [constructor section](https://github.com/Chapmip/micropython-stm32-iol#constructor-for-iolreg) about overriding the default read size.
 
 It may also be possible to use the alternative terser syntax `reg_obj[:] = value` for this operation.  Note, however, that the latter option causes a read operation to be made to the STM32 register before the write is carried out.  If there is a risk that this may cause unwanted side-effects, then the `reg_obj.write()` method (which only leads to a write operation) is a safer option.
 
@@ -132,7 +138,7 @@ Read a contiguous bit field from the STM32 register associated with the `iol.Reg
 
 * The return value (`bit_field_value`) is shifted right as necessary to ensure that its least significant bit corresponds to the least significant bit of the contiguous bit field in the STM32 register.
 
-*Note that this adoption of the Python "slicing" notation `[a:b]` is convenient for bit fields but, by design, is inconsistent with the general Python approach to the slicing of objects, in which `a` is always a starting position and `b` is **one greater** than the finishing position (i.e. not included).  This is unfortunate but pragmatic, as references in the STM32 documentation to bit fields within registers (such as "TIMx_CR1[9:8]" for the 2 bit CKD clock division value) always include the upper bit value within the bit field, so it would be confusing to do otherwise.*
+*Note that this adaptation of the Python "slicing" notation `[a:b]` is convenient for bit fields but, by design, is inconsistent with the general Python approach to the slicing of objects, in which `a` is always a starting position and `b` is **one greater** than the finishing position (i.e. not included).  This is unfortunate but a pragmatic choice, as references in the STM32 documentation to bit fields within registers (such as "TIMx_CR1[9:8]" for the 2 bit CKD clock division value) always include the upper bit value within the bit field, so it would be confusing to do otherwise.*
 
 ### `iol.Reg[high:low]` for write
 
@@ -146,7 +152,7 @@ Write to a contiguous bit field in the STM32 register associated with the `iol.R
 
 * `bit_field_value` must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bit_high` and `bit_low` (e.g. 0 to 7 for a 3-bit field).
 
-*See above note regarding the non-standard adoption of the Python "slicing" notation.*
+*See note in ["for read" section](https://github.com/Chapmip/micropython-stm32-iol#iolreghighlow-for-read) regarding the non-standard adaptation of the Python "slicing" notation.*
 
 ### `iol.Reg.bits()`
 
@@ -176,17 +182,23 @@ Dump in human-friendly format the contents of all of the STM32 registers associa
     
 The output of `dump()` is an iteration of the `print()` output for each of the defined registers in the STM32 peripheral block.
 
-**Note** that this method is not available for `iol.Mem` objects (see later below).
+**Note that this method is not available for [`iol.Mem`](https://github.com/Chapmip/micropython-stm32-iol#class-iolmem--low-level-io-access-to-a-single-stm32-memory-location) objects.**
 
 *This method is useful for debugging problems with "bare-metal" code in which it is necessary to inspect the contents of the whole set of related STM32 peripheral registers at a hexadecimal level or an individual bit level.*
 
 ### `iol.Reg.derive()`
 
-Derive an `iol.Mem` object (see later) of a specified type from an `iol.Reg` (or `iol.Mem`) object assigned to `reg_obj`:
+Derive an [`iol.Mem`](https://github.com/Chapmip/micropython-stm32-iol#class-iolmem--low-level-io-access-to-a-single-stm32-memory-location) object of a specified type from an `iol.Reg` (or `iol.Mem`) object assigned to `reg_obj`:
  
     mem_obj = reg_obj.derive(new_type)
 
-* `new_type` is a string specifying the size of the memory location to be applied to the new `iol.Mem` object and its offset from the memory location stored in `reg_obj`.   The string is a concatenation of the required size ("32", "16" or "8") with an offset specifier (none for 32 bits, "L" or "H" for 16 bits, "Ll", "Lh", "Hl" and "Hh" for 8 bits ⁠— note the lower-case "L"s!).  The endian-ness of the system (big- or little-endian) is taken into account to ensure that the correct offset is applied for 16 and 8 bit addressing. 
+* `new_type` is a string specifying the size of the memory location to be applied to the new `iol.Mem` object and its offset from the memory location stored in `reg_obj`.   The string is a concatenation of the required size ("32", "16" or "8") with an appropriate offset specifier:
+
+  * for 32 bits: none
+  * for 16 bits: "L" or "H" for lower or upper half
+  * for 8 bits: "Ll", "Lh", "Hl" and "Hh" (note the lower-case "L"s) — in order from least significant to most significant byte
+
+The endian-ness of the system (big- or little-endian) is taken into account to ensure that the correct offset is applied for 16 bit and 8 bit addressing. 
 
 # Class `iol.RegArr` ⁠— low-level I/O access to one or more STM32 peripheral registers containing uniform array of bit fields
 
@@ -236,7 +248,7 @@ Write to a bit field in the array of STM32 registers associated with the `iol.Re
 
 ### `iol.RegArr.print()`
 
-Print in a human-friendly format the array of values held in the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
+Print in human-friendly format the array of values held in the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
  
     reg_arr_obj.print()
     
@@ -244,7 +256,7 @@ Print in a human-friendly format the array of values held in the STM32 registers
 
 ### `iol.RegArr.dump()`
 
-Dump in a human-friendly format the contents of all of the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
+Dump in human-friendly format the contents of all of the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
  
     reg_arr_obj.dump()
     
@@ -252,7 +264,7 @@ The output of `dump()` is an iteration of the `print()` output for each of the `
 
 # Class `iol.Mem` ⁠— low-level I/O access to a single STM32 memory location
 
-The `iol.Mem` class is the base class for `iol.Reg` that enables any single STM32 memory location (not necessarily a peripheral register) to be manipulated in a more fluent way from Micropython.  `iol.Mem` provides most of the methods to the derived `iol.Reg` class.
+The `iol.Mem` class is the base class for `iol.Reg` that enables any single STM32 memory location (not necessarily a peripheral register) to be manipulated in a more fluent way from Micropython.  `iol.Mem` provides most of the methods to the derived [`iol.Reg`](https://github.com/Chapmip/micropython-stm32-iol#methods-for-iolreg) class.
 
 ## Constructor for `iol.Mem`
 
@@ -262,7 +274,7 @@ Create a new `iol.Mem` object corresponding to an STM32 memory location and assi
 
 * `addr` is a positive integer (or zero) corresponding to the absolute address of the STM32 memory location of interest.  The address must satisfy the alignment requirements for the value of `size` (see below) ⁠— for example, 32-bit words must be aligned to a 32-bit word boundary, or else read and write operations will fail.
 
-* `size` is an optional integer value that specifies the size of the memory location (32, 16 or 8 bits), with a default is 32 bits.
+* `size` is an optional integer value that specifies the size of the memory location (32, 16 or 8 bits), with a default of 32 bits.
 
 Examples:
 
@@ -271,11 +283,11 @@ Examples:
 
 ## Methods for `iol.Mem`
 
-`iol.Mem` provides all of the methods **except** for `dump()`to the `iol.Reg` class.  Refer therefore to the above documentation on `iol.Reg` for details of the applicable methods. 
+`iol.Mem` provides all of the methods **except** `dump()`to the `iol.Reg` class.  Please therefore refer to the [documentation on `iol.Reg`](https://github.com/Chapmip/micropython-stm32-iol#methods-for-iolreg) for details of applicable methods. 
 
 # Gotchas!
 
-I'm documenting here any hazards that I have encountered whilst using the `iol.py` module.
+I'm documenting here any hazards that I encounter whilst using the `iol.py` module.
 
 ## 1. Remember to use `[:]` or `read/write` methods!
 
