@@ -72,15 +72,19 @@ The `iol.py` module also handles a few special cases in which the `stm` manual f
 
 #### Methods for `iol.Reg`
 
-**Read the current value held in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+**- Read the current value held in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
  
-    value = reg_obj.read(*, size=None)
+    reg_value = reg_obj.read(*, size=None)
     
 * `size` is an optional integer value (not valid as a positional parameter ⁠— must be assigned explictly by name) that specifies the bit width of the read operation (32, 16 or 8 bits), overriding the inference built in to the module (usually 32 bits).  Refer to the warning in the constructor section about overriding the default read size.
 
+* The return value (`reg_value`) will be a positive integer (or zero) corresponding to the size being read.
+
 Note that the alternative terser syntax `value = reg_obj[:]` can also be used for this operation.
 
-**Write a value to the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+---
+
+**- Write a value to the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
  
     reg_obj.write(value, *, size=None)
 
@@ -90,15 +94,19 @@ Note that the alternative terser syntax `value = reg_obj[:]` can also be used fo
 
 It may also be possible to use the alternative terser syntax `reg_obj[:] = value` for this operation.  Note, however, that the latter option causes a read operation to be made to the STM32 register before the write is carried out.  If there is a risk that this may cause unwanted side-effects, then the `reg_obj.write()` method (which only leads to a write operation) is a safer option.
 
-**Read a single bit from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+---
+
+**- Read a single bit from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
  
     bit_value = reg_obj[bit_number]
 
 * `bit_number` is the positive integer (or zero) number of the bit to be read from the STM32 register.  It must be within the range of the bit width defined for the `iol.Reg` object when it was constructed.
 
-* The return value is always one of the integers 0 or 1
+* The return value (`bit_value`) is always one of the integers 0 or 1
 
-**Write to a single bit in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+---
+
+**- Write to a single bit in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
  
     reg_obj[bit_number] = bit_value
 
@@ -106,31 +114,103 @@ It may also be possible to use the alternative terser syntax `reg_obj[:] = value
 
 * `bit_value` must evaluate to one of the integers 0 or 1
 
-**Read a contiguous bit field from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+---
+
+**- Read a contiguous bit field from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
  
-    bit_value = reg_obj[bit_high:bit_low]
+    bit_field_value = reg_obj[bit_high:bit_low]
 
 * `bit_high` and `bit_low` are the positive integer (or zero) numbers of the highest bit and the lowest bit in the contiguous bit field to be read from the STM32 register.  Both values must be within the range of the bit width defined for the `iol.Reg` object when it was constructed.
 
 * If `bit_high` < `bit_low`, then these values will be swapped so that the return value always has its least significant bit corresponding to the least significant bit of the bit field in the STM32 register.
 
-* The return value is shifted right as necessary to ensure that its least significant bit corresponds to the least significant bit of the contiguous bit field in the STM32 register.
+* The return value (`bit_field_value`) is shifted right as necessary to ensure that its least significant bit corresponds to the least significant bit of the contiguous bit field in the STM32 register.
 
 *Note that this adoption of the Python "slicing" notation `[a:b]` is convenient for bit fields but, by design, is inconsistent with the general Python approach to the slicing of objects, in which `a` is always a starting position and `b` is **one greater** than the finishing position (i.e. not included).  This is unfortunate but pragmatic, as references in the STM32 documentation to bit fields within registers (such as "TIMx_CR1[9:8]" for the 2 bit CKD clock division value) always include the upper bit value within the bit field, so it would be confusing to do otherwise.*
 
-**Write to a contiguous bit field in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+---
+
+**- Write to a contiguous bit field in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
  
-    reg_obj[bit_high:bit_low] = bit_value
+    reg_obj[bit_high:bit_low] = bit_field_value
 
 * `bit_high` and `bit_low` are the positive integer (or zero) numbers of the highest bit and the lowest bit in the contiguous bit field to be read from the STM32 register.  Both values must be within the range of the bit width defined for the `iol.Reg` object when it was constructed.
 
-* If `bit_high` < `bit_low`, then these values will be swapped so that the least significant bit of `bit_value` is always written to the least significant bit of the bit field in the STM32 register.
+* If `bit_high` < `bit_low`, then these values will be swapped so that the least significant bit of `bit_field_value` is always written to the least significant bit of the bit field in the STM32 register.
 
-* 'bit_value' must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bit_high` and `bit_low` (e.g. 0 to 7 for a 3-bit field)..
+* `bit_field_value` must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bit_high` and `bit_low` (e.g. 0 to 7 for a 3-bit field)..
 
 *See above note regarding the non-standard adoption of the Python "slicing" notation.*
 
-### More to be added here...
+---
+
+**- Read a non-contiguous collection of bits from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+ 
+    bit_vals_tuple = reg_obj.bits(bit_nums_tuple)
+
+* `bit_nums_tuple` is a tuple containing one or more positive integer (or zero) numbers of the individual bits to be read from the STM32 register.  All values in the tuple must be within the range of the bit width defined for the `iol.Reg` object when it was constructed.
+
+* The return value (`bit_vals_tuple`) is a tuple containing one of the integers 0 or 1 corresponding to the bit value in the STM32 register for each of the bit numbers specified in `bit_nums_tuple`, in the same order as the input tuple.
+
+*This method is useful for checking the states of multiple bits in a single register without the need for individual reads or repeated "AND-masking" of the read value in the user's code.*
+
+---
+
+**- Print in a human-friendly format the current value held in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
+ 
+    reg_obj.print()
+    
+*This method is useful for debugging problems with "bare-metal" code in which it is necessary to inspect the contents of STM32 peripheral registers at a hexadecimal level or an individual bit level.*
+
+---
+
+**- Dump in a human-friendly format the contents of all of the STM32 registers associated with the STM32 peripheral block (e.g. "GPIOA") specified when constructing the `iol.Reg` object:**
+ 
+    reg_obj.dump()
+    
+The output of `dump()` is an iteration of the `print()` output for each of the defined registers in the STM32 peripheral block.
+
+**Note** that this method is not available for `iol.Mem` objects (see later below).
+
+*This method is useful for debugging problems with "bare-metal" code in which it is necessary to inspect the contents of the whole set of related STM32 peripheral registers at a hexadecimal level or an individual bit level.*
+
+---
+
+**- Derive an `iol.Mem` object (see later) of a specified type from an `iol.Reg` (or `iol.Mem`) object assigned to `reg_obj`:**
+ 
+    mem_obj = reg_obj.derive(new_type)
+
+* `new_type` is a string specifying the size of the memory location to be applied to the new `iol.Mem` object and its offset from the memory location stored in `reg_obj`.   The string is a concatenation of the required size ("32", "16" or "8") with an offset specifier (none for 32 bits, "L" or "H" for 16 bits, "Ll", "Lh", "Hl" and "Hh" for 8 bits ⁠— note the lower-case "L"s!).  The endian-ness of the system (big- or little-endian) is taken into account to ensure that the correct offset is applied for 16 and 8 bit addressing. 
+
+---
+
+### More to be added here on RegArr..
+
+---
+
+### Class `iol.Mem` ⁠— low-level I/O access to a single STM32 memory location:
+
+The `iol.Mem` class is the base class for `iol.Reg` that enables any single STM32 memory location (not necessarily a peripheral register) to be manipulated in a more fluent way from Micropython.
+
+#### Constructor for `iol.Mem`
+
+Create a new `iol.Mem` object corresponding to an STM32 memory location and assign it to `mem_obj`:
+
+    mem_obj = iol.Mem(addr, size=32)
+
+* `addr` is a positive integer (or zero) corresponding to the absolute address of the STM32 memory location of interest.  The address must satisfy the alignment requirements for the value of `size` (see below) ⁠— for example, 32-bit words must be aligned to a 32-bit word boundary, or else read and write operations will fail.
+
+* `size` is an optional integer value that specifies the size of the memory location (32, 16 or 8 bits), with a default is 32 bits.
+
+Examples:
+
+    mem_32 = iol.Mem(0x40020014)
+    mem_16 = iol.Mem(0x4002001A, 16)
+
+#### Methods for `iol.Mem`
+
+`iol.Mem` provides all of the methods **except** for `dump()`to the `iol.Reg` class.  Refer therefore to the above documentation on `iol.Reg` for details of the applicable methods. 
+
 
 ## References
 
