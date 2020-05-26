@@ -2,11 +2,21 @@
 
 **This document is currently being created and so is not yet suitable for reference.**
 
-### General description of `iol.py` module
+### Quick summary of `iol.py` module
 
-* Low-level I/O classes to facilitate "bare-metal" access in Micropython to STM32 memory locations and device registers (for learning purposes).
+* Low-level I/O classes to facilitate "bare-metal" access in Micropython to STM32 memory locations and device registers (for learning purposes)
 
-* Created on a Pyboard (PYB) v1.1 (with STM32F405RGT6 microcontroller) but should be readily adaptable to other STM32 Micropython builds.
+* Created on a Pyboard (PYB) v1.1 (with STM32F405RGT6 microcontroller) but should be readily adaptable to other STM32 Micropython builds
+
+### History
+
+I created the `iol.py` module when I wanted to experiment with "bare metal" access to STM32 device registers on a Pyboard v1.1.  I had obtained the Udemy course [*"Embedded Systems Bare-Metal Programming Ground Up™ (STM32)"*](https://www.udemy.com/course/embedded-systems-bare-metal-programming/) but was unable to use the examples directly as I didn't have a Windows PC on which to run the required Keil uVision environment.  I therefore chose to create classes to simulate "bare metal" access in Micropython rather than C.
+
+I wasn't sure whether the Micropython system footprint would get in the way of "bare metal" accesses to device registers, but I didn't find this generally to be the case.  In most cases, I have been able to work around issues of contention by reading carefully the Micropython documentation and avoiding a few on-chip peripheral functions that are dedicated to Micropython.
+
+Inevitably, code written in Micropython will run considerably slower than C code.  I only found this to be a problem, though, during one experiment with the SPI bus, in which Micropython code is unable to keep up with the high speed of the bus (can be up to 21 MHz!).  Even in this case, I was able to work around this limitation by re-writing the critical section of code using inline assembler code.
+
+My code examples inspired by the Udemy course can be found in my separate repository [here](https://github.com/Chapmip/micropython-stm32-examples).
 
 ### Getting started
 
@@ -27,9 +37,9 @@ To add the `iol.py` module to the Pyboard, copy it from the computer into the to
 **Note:** To avoid possible corruption of the Pyboard filesystem, it is important that the "Eject" operation is performed in the Chrome OS "Files" app before either:
 
 * Disconnecting the USB cable; or
-* Pressing the "reset" button on the Pyboard
+* Pressing the reset button on the Pyboard
 
-In general, the "reset" button should be used as a last resort for a "cold start" of the Pyboard ⁠— for example, if the REPL environment has crashed.  In most other cases, it is adequate to perform a "warm start" by issuing a `<CONTROL-D>` on a blank line of the REPL prompt.
+In general, the reset button should be used as a last resort for a "cold start" of the Pyboard ⁠— for example, if the REPL environment has crashed.  In most other cases, it is adequate to perform a "warm start" by issuing a `<CONTROL-D>` on a blank line of the REPL prompt.
 
 ### References
 
@@ -39,6 +49,7 @@ In general, the "reset" button should be used as a last resort for a "cold start
 * [MicroPython documentation](https://docs.micropython.org/en/latest/)
 * [Pyboard v1.1 documentation](https://docs.micropython.org/en/latest/pyboard/quickref.html)
 * [Serial Term for Chrome OS (by Ganehag)](https://chrome.google.com/webstore/detail/serial-term/fnjkimblohniildfepjhejeppenokhie)
+* [Separate repository for code examples using `iol.py`](https://github.com/Chapmip/micropython-stm32-examples)
 
 ### Low-level I/O code
 
