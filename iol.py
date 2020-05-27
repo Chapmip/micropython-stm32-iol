@@ -173,9 +173,11 @@ def match_name(match="", base=False, register=False):
     matches = []
     for name in iter_names(match, base, register):
         matches.append(name)
-    if len(matches) != 1:
-        raise ValueError("Unable to find {} in names".format(match))
-    return matches[0]
+    if len(matches) == 1:
+        return matches[0]               # Single match
+    if match in matches:
+        return match                    # Multiple matches, one exact
+    raise ValueError("Unable to identify {} in names".format(match))
 
 
 # Convert register base name into register prefix
