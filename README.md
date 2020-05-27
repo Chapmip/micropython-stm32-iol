@@ -1,6 +1,6 @@
 # The `iol.py` module
 
-**This is the user manual for the `iol.py` module.  It is currently a working draft that is still under review.**
+This is the user manual for the for the `iol.py` module that I am offering as immediately usable (on a Pyboard v1.1) for "bare-metal" access to STM32 peripheral registers using Micropython.
 
 # Quick summary
 
@@ -9,6 +9,7 @@
 * Created on a Pyboard (PYB) v1.1 (with STM32F405RGT6 microcontroller) but should be readily adaptable to other STM32 Micropython builds
 
 # Quick links
+
 * [History](https://github.com/Chapmip/micropython-stm32-iol#history)
 * [Getting started](https://github.com/Chapmip/micropython-stm32-iol#getting-started)
 * [Source code](https://github.com/Chapmip/micropython-stm32-iol#source-code)
