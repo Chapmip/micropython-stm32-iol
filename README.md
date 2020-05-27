@@ -1,4 +1,4 @@
-# The `iol.py` module
+﻿# The `iol.py` module
 
 This is the user manual for the for the `iol.py` module that I am offering as immediately usable (on a Pyboard v1.1) for "bare-metal" access to STM32 peripheral registers using Micropython.
 
@@ -95,6 +95,12 @@ Read the current value held in the STM32 register associated with the `iol.Reg` 
 
 Note that the alternative terser syntax `value = reg_obj[:]` can also be used for this operation.
 
+Example:
+
+    spi_dr = iol.Reg("SPI2.DR")
+    ...
+    rx_data = spi_dr.read()   # Read from SPI2 DR in one operation
+
 ### `iol.Reg.write()`
 
 Write a value to the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:
@@ -107,6 +113,14 @@ Write a value to the STM32 register associated with the `iol.Reg` object assigne
 
 It may also be possible to use the alternative terser syntax `reg_obj[:] = value` for this operation.  Note, however, that the latter option causes a read operation to be made to the STM32 register before the write is carried out.  If there is a risk that this may cause unwanted side-effects, then the `reg_obj.write()` method (which only leads to a write operation) is a safer option.
 
+Example:
+
+    spi_dr = iol.Reg("SPI2.DR")
+    ...
+    spi_dr.write(tx_data)     # Write to SPI2 DR without reading it first
+
+The Data Register (DR) in the SPI peripheral block is an example of a register for which reads can have side effects ⁠— hence the use of the `.write()` method in this example.
+
 ### `iol.Reg[bit]` for read
 
 Read a single bit from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:**
@@ -117,6 +131,17 @@ Read a single bit from the STM32 register associated with the `iol.Reg` object a
 
 * The return value (`bit_value`) is always one of the integers 0 or 1
 
+Example:
+
+    pb_idr = iol.Reg("GPIOB.IDR")
+    ...
+    if not pb_idr[3]:         # Check bit 3 of GPIOB IDR (ignore other bits)
+        print("Pushed!")
+    else:
+        print("Not pushed!")
+
+On the Pyboard, PB3 is the user push button on the board (active low). This example assumes that PB3 has been configured for input (mode 0).
+
 ### `iol.Reg[bit]` for write
 
 Write to a single bit in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:
@@ -126,6 +151,14 @@ Write to a single bit in the STM32 register associated with the `iol.Reg` object
 * `bit_number` is the positive integer (or zero) number of the bit to be read from the STM32 register.  It must be within the range of the bit width defined for the `iol.Reg` object when it was constructed.
 
 * `bit_value` must evaluate to one of the integers 0 or 1
+
+Example:
+
+    pa_odr = iol.Reg("GPIOA.ODR")
+    ...
+    pa_odr[13] = 1            # Set bit 13 of GPIOA ODR (leave other bits alone)
+
+On the Pyboard, PA13 is the onboard red LED (active high). This example assumes that PA13 has been configured for output (mode 1).
 
 ### `iol.Reg[high:low]` for read
 
@@ -141,6 +174,17 @@ Read a contiguous bit field from the STM32 register associated with the `iol.Reg
 
 *Note that this adaptation of the Python "slicing" notation `[a:b]` is convenient for bit fields but, by design, is inconsistent with the general Python approach to the slicing of objects, in which `a` is always a starting position and `b` is **one greater** than the finishing position (i.e. not included).  This is unfortunate but a pragmatic choice, as references in the STM32 documentation to bit fields within registers (such as "TIMx_CR1[9:8]" for the 2 bit CKD clock division value) always include the upper bit value within the bit field, so it would be confusing to do otherwise.*
 
+Example:
+
+    hpre = rcc_cfgr[7:4]
+    ...
+    if hpre < 8:             # Calculate AHB clock division factor
+        ahb_div = 1
+    else:
+        ahb_div = (1 << (hpre - 7))
+
+Bits 7 to 4 of the RCC CFGR register determine the prescaler value for the AHB clock, which is converted here into a division factor by the method stated in the STM32 documentation.
+
 ### `iol.Reg[high:low]` for write
 
 Write to a contiguous bit field in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:
@@ -155,6 +199,14 @@ Write to a contiguous bit field in the STM32 register associated with the `iol.R
 
 *See note in ["for read" section](https://github.com/Chapmip/micropython-stm32-iol#iolreghighlow-for-read) regarding the non-standard adaptation of the Python "slicing" notation.*
 
+Example:
+
+    adc1_cr1 = iol.Reg("ADC1.CR1")
+    ...
+    adc1_cr1[25:24] = 2      # Set ADC resolution to 8 bits
+
+Bits 25 and 24 of the ADC CR1 register are the RES[1:0] bit field that selects the resolution of the conversion.
+
 ### `iol.Reg.bits()`
 
 Read a non-contiguous collection of bits from the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:
@@ -167,6 +219,15 @@ Read a non-contiguous collection of bits from the STM32 register associated with
 
 *This method is useful for checking the states of multiple bits in a single register without the need for individual reads or repeated "AND-masking" of the read value in the user's code.*
 
+Example:
+
+    i2c_sr1 = iol.Reg("I2C1.SR1")
+    ....
+    while not any(i2c_sr1.bits(1, 10)):    # Wait until ADDR = 1 or AF = 1
+        pass
+
+Bit 1 (ADDR) of I2C SR1 indicates successful sending of an address to a slave, whilst bit 10 (AF) of I2C SR1 indicates a failure by the slave to acknowledge the address.  Either condition becoming true (i.e. use of Python `any()`) is a reason to stop waiting for the I2C slave.
+
 ### `iol.Reg.print()`
 
 Print in human-friendly format the current value held in the STM32 register associated with the `iol.Reg` object assigned to `reg_obj`:
@@ -174,6 +235,12 @@ Print in human-friendly format the current value held in the STM32 register asso
     reg_obj.print()
     
 *This method is useful for debugging problems with "bare-metal" code in which it is necessary to inspect the contents of STM32 peripheral registers at a hexadecimal level or an individual bit level.*
+
+Example:
+
+    pb_idr = iol.Reg("GPIOB.IDR")
+    ...
+    pb_idr.print()           # Show current state of GPIOB IDR
 
 ### `iol.Reg.dump()`
 
@@ -186,6 +253,12 @@ The output of `dump()` is an iteration of the `print()` output for each of the d
 **Note that this method is not available for [`iol.Mem`](https://github.com/Chapmip/micropython-stm32-iol#class-iolmem--low-level-io-access-to-a-single-stm32-memory-location) objects.**
 
 *This method is useful for debugging problems with "bare-metal" code in which it is necessary to inspect the contents of the whole set of related STM32 peripheral registers at a hexadecimal level or an individual bit level.*
+
+Example:
+
+    pa_odr = iol.Reg("GPIOA.ODR")
+    ...
+    pa_odr.dump()            # Dump contents of all GPIOA registers
 
 ### `iol.Reg.derive()`
 
@@ -200,6 +273,13 @@ Derive an [`iol.Mem`](https://github.com/Chapmip/micropython-stm32-iol#class-iol
   * for 8 bits: "Ll", "Lh", "Hl" and "Hh" (note the lower-case "L"s) — in order from least significant to most significant byte
 
 The endian-ness of the system (big- or little-endian) is taken into account to ensure that the correct offset is applied for 16 bit and 8 bit addressing. 
+
+Example:
+
+    pa_bsrr = iol.Reg("GPIOA.BSRR")
+    ...
+    pa_bsrrh = pa_bsrr.derive("16H")    # iol.Mem object for BSRRH
+    pa_bsrrl = pa_bsrr.derive("16L")    # iol.Mem object for BSRRL
 
 # Class `iol.RegArr` ⁠— low-level I/O access to one or more STM32 peripheral registers containing uniform array of bit fields
 
@@ -237,6 +317,12 @@ Read a bit field in the array of STM32 registers associated with the `iol.RegArr
 
 * The return value (`bit_field_value`) will be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bits_per_field` when the `iol.RegArr` object was constructed (i.e. 0-7 for a 3 bit field).
 
+Example:
+
+    pa_afr = iol.RegArr("GPIOA.AFR0,AFR1", 8, 4)
+    ...
+    print("PA0 alternate function is", pa_afr[0])
+
 ### `iol.RegArr[bit]`for write
 
 Write to a bit field in the array of STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
@@ -247,6 +333,12 @@ Write to a bit field in the array of STM32 registers associated with the `iol.Re
 
 * `bit_field_value` must be a positive integer (or zero) within the range of the number of bits for the bit field defined by `bits_per_field` when the `iol.RegArr` object was constructed (i.e. 0-7 for a 3 bit field).
 
+Example:
+
+    adc1_smpr = iol.RegArr("ADC1.SMPR2,SMPR1", 10, 3)
+    ...
+    adc1_smpr[16] = 4        # Set ADC channel 16 sample time to 84 cycles
+
 ### `iol.RegArr.print()`
 
 Print in human-friendly format the array of values held in the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
@@ -255,13 +347,25 @@ Print in human-friendly format the array of values held in the STM32 registers a
     
 *This method is useful for debugging problems with "bare-metal" code in which it is necessary to locate the correct bit field within an array of STM32 peripheral registers and identify its value at a hexadecimal level or an individual bit level.*
 
+Example:
+
+    pa_afr = iol.RegArr("GPIOA.AFR0,AFR1", 8, 4)
+    ...
+    pa_afr.print()           # Show all elements of array of AFR bit fields
+
 ### `iol.RegArr.dump()`
 
-Dump in human-friendly format the contents of all of the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
+Dump in human-friendly format the the array of values and the contents of all of the STM32 registers associated with the `iol.RegArr` object assigned to `reg_arr_obj`:
  
     reg_arr_obj.dump()
     
-The output of `dump()` is an iteration of the `print()` output for each of the `iol.Reg` registers specified when constructing the `iol.RegArr` object.
+The output of `dump()` consists of the `iol.RegArr.print()` output followed by an iteration of the `iol.Reg.print()` output for each of the `iol.Reg` registers specified when constructing the `iol.RegArr` object.
+
+Example:
+
+    pa_afr = iol.RegArr("GPIOA.AFR0,AFR1", 8, 4)
+    ...
+    pa_afr.dump()            # Show current states of all AFR registers
 
 # Class `iol.Mem` ⁠— low-level I/O access to a single STM32 memory location
 
